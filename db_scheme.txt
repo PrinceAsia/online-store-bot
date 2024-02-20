@@ -1,0 +1,31 @@
+Users:
+	id		?
+	tg_lname
+	tg_fname
+	tg_id
+	fullname
+	phone
+	email
+
+Categories:
+	id
+	c_name
+	c_desc
+
+Products
+	id
+	product_name
+	product_image
+	product_category
+
+Ads
+	id
+	ad_title
+	ad_text
+	ad_price
+	ad_images
+	ad_product
+	ad_user_id
+	ad_date
+	ad_status
+	ad_phone
