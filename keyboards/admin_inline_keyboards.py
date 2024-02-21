@@ -14,7 +14,7 @@ def make_category_list() -> InlineKeyboardMarkup:
     for category in categories:
         rows.append([
             InlineKeyboardButton(
-                text=str(category[1]),
+                text=category[1],
                 callback_data=str(category[1])
             )
         ])

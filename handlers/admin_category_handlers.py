@@ -14,7 +14,8 @@ db = Database(DB_NAME)
 
 
 @category_router.message(CommandStart())
-async def start_handler(message: Message):
+async def start_handler(message: Message, state: FSMContext):
+    await state.clear()
     if message.from_user.id in admins:
         await message.bot.set_my_commands(commands=commands_admin)
         await message.answer("Welcome admin, please choose command from commands list")
@@ -27,6 +28,15 @@ async def start_handler(message: Message):
 async def cancel_handler(message: Message, state: FSMContext):
     await state.clear()
     await message.answer("All actions canceled, you may continue sending commands")
+
+
+@category_router.message(Command('categories'))
+async def categories_list_handler(message: Message, state: FSMContext):
+    await state.clear()
+    await message.answer(
+        text="Categories list:",
+        reply_markup=make_category_list()
+    )
 
 
 # With this handler admin can add new category
@@ -96,6 +106,6 @@ async def del_category_handler(message: Message, state: FSMContext):
 async def callback_category_delete(callback: CallbackQuery, state: FSMContext):
     if db.del_category(cat_name=callback.data):
         await state.clear()
-        await callback.message.edit_text(f"Category with name '{callback.data}' succesfully deleted")
+        await callback.message.edit_text(f"Category with name '{callback.data}' successfully deleted")
     else:
         await callback.message.answer(f"Something error, please, try again!")

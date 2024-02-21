@@ -16,7 +16,7 @@ class Database:
             "SELECT id, category_name FROM categories WHERE category_name=?;",
             (new_cat,)
         ).fetchone()
-        print(categories)
+        # print(categories)
         if not categories:
             try:
                 self.cursor.execute(
