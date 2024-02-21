@@ -6,8 +6,7 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 
 from config import BOT_TOKEN
-from handlers.admin_msg_handlers import admin_message_router
-from handlers.commands_handlers import commands_router
+from handlers.admin_category_handlers import category_router
 
 
 async def main():
@@ -19,8 +18,8 @@ async def main():
         )
     )
     dp = Dispatcher()
-    dp.include_routers(
-        commands_router, admin_message_router
+    dp.include_router(
+        category_router
     )
     await dp.start_polling(bot)
 

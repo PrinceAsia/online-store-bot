@@ -9,11 +9,11 @@ from states.admin_states import CategoryStates
 from utils.database import Database
 from utils.my_commands import commands_admin, commands_user
 
-commands_router = Router()
+category_router = Router()
 db = Database(DB_NAME)
 
 
-@commands_router.message(CommandStart())
+@category_router.message(CommandStart())
 async def start_handler(message: Message):
     if message.from_user.id in admins:
         await message.bot.set_my_commands(commands=commands_admin)
@@ -23,21 +23,34 @@ async def start_handler(message: Message):
         await message.answer("Let's start registration")
 
 
-@commands_router.message(Command('cancel'))
+@category_router.message(Command('cancel'))
 async def cancel_handler(message: Message, state: FSMContext):
     await state.clear()
     await message.answer("All actions canceled, you may continue sending commands")
 
 
 # With this handler admin can add new category
-@commands_router.message(Command('new_category'))
+@category_router.message(Command('new_category'))
 async def new_category_handler(message: Message, state: FSMContext):
     await state.set_state(CategoryStates.newCategory_state)
     await message.answer("Please, send new category name ...")
 
 
+@category_router.message(CategoryStates.newCategory_state)
+async def new_category_handler(message: Message, state: FSMContext):
+    res = db.add_category(message.text)
+    if res['status']:
+        await message.answer("New category successfully added")
+        await state.clear()
+    elif res['desc'] == 'exists':
+        await message.reply("This category already exists.\n"
+                            "Please, send other name or click /cancel")
+    else:
+        await message.reply(res['desc'])
+
+
 # Functions for editing category name
-@commands_router.message(Command('edit_category'))
+@category_router.message(Command('edit_category'))
 async def edit_category_handler(message: Message, state: FSMContext):
     await state.set_state(CategoryStates.updCategory_state_list)
     await message.answer(
@@ -46,7 +59,7 @@ async def edit_category_handler(message: Message, state: FSMContext):
     )
 
 
-@commands_router.callback_query(CategoryStates.updCategory_state_list)
+@category_router.callback_query(CategoryStates.updCategory_state_list)
 async def callback_category_edit(callback: CallbackQuery, state: FSMContext):
     await state.update_data(cat_name=callback.data)
     await state.set_state(CategoryStates.updCategory_state_new)
@@ -54,7 +67,7 @@ async def callback_category_edit(callback: CallbackQuery, state: FSMContext):
     await callback.message.delete()
 
 
-@commands_router.message(CategoryStates.updCategory_state_new)
+@category_router.message(CategoryStates.updCategory_state_new)
 async def set_new_category_name(message: Message, state: FSMContext):
     new_cat = message.text
     st_data = await state.get_data()
@@ -68,3 +81,21 @@ async def set_new_category_name(message: Message, state: FSMContext):
                             "Please, send other name or click /cancel")
     else:
         await message.reply(res['desc'])
+
+
+@category_router.message(Command('del_category'))
+async def del_category_handler(message: Message, state: FSMContext):
+    await state.set_state(CategoryStates.delCategory_state)
+    await message.answer(
+        text="Choose category name which you want to delete...",
+        reply_markup=make_category_list()
+    )
+
+
+@category_router.callback_query(CategoryStates.delCategory_state)
+async def callback_category_delete(callback: CallbackQuery, state: FSMContext):
+    if db.del_category(cat_name=callback.data):
+        await state.clear()
+        await callback.message.edit_text(f"Category with name '{callback.data}' succesfully deleted")
+    else:
+        await callback.message.answer(f"Something error, please, try again!")

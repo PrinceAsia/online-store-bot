@@ -73,12 +73,20 @@ class Database:
             }
             return res
 
-    def edit_category(self, new_name, id):
+    def edit_category(self, new_name, cat_id):
         try:
             self.cursor.execute(
                 "UPDATE categories SET category_name=? WHERE id=?",
-                (new_name, id)
+                (new_name, cat_id)
             )
+            self.conn.commit()
+            return True
+        except:
+            return False
+
+    def del_category(self, cat_name):
+        try:
+            self.cursor.execute("DELETE FROM categories WHERE category_name=?", (cat_name,))
             self.conn.commit()
             return True
         except:
