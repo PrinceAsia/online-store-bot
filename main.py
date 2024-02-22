@@ -7,6 +7,7 @@ from aiogram.enums import ParseMode
 
 from config import BOT_TOKEN
 from handlers.admin_category_handlers import category_router
+from handlers.client_ads_handlers import ads_router
 
 
 async def main():
@@ -18,8 +19,9 @@ async def main():
         )
     )
     dp = Dispatcher()
-    dp.include_router(
-        category_router
+    dp.include_routers(
+        category_router,
+        ads_router
     )
     await dp.start_polling(bot)
 

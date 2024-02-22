@@ -91,3 +91,28 @@ class Database:
             return True
         except:
             return False
+
+    # Work with products
+    def get_products(self, cat_id):
+        products = self.cursor.execute(
+            f"SELECT id, product_name, product_image FROM products WHERE product_category=?;",
+            (cat_id,))
+        return products
+
+    def insert_ad(self, title, text, price, image, phone, u_id, prod_id, date):
+        try:
+            self.cursor.execute(
+                f"INSERT INTO ads (ad_title, ad_text, ad_price, ad_images, ad_phone, ad_owner, ad_product, ad_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                (title, text, price, image, phone, u_id, prod_id, date)
+            )
+            self.conn.commit()
+            return True
+        except:
+            return False
+
+    def get_my_ads(self, u_id):
+        ads = self.cursor.execute(
+            f"SELECT id, ad_title, ad_text, ad_price, ad_images FROM ads WHERE ad_owner=?;",
+            (u_id,)
+        )
+        return ads

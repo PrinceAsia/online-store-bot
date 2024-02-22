@@ -71,5 +71,21 @@ commands_user = [
     BotCommand(
         command='help',
         description='???'
+    ),
+    BotCommand(
+        command='ads',
+        description='ads list (with pagination)'
+    ),
+    BotCommand(
+        command='new_ad',
+        description='add new ad to store'
+    ),
+    BotCommand(
+        command='edit_ad',
+        description='edit ad informations'
+    ),
+    BotCommand(
+        command='del_ad',
+        description='delete ad'
     )
 ]
