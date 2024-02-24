@@ -77,6 +77,10 @@ commands_user = [
         description='ads list (with pagination)'
     ),
     BotCommand(
+        command='all_ads',
+        description='ads list (with pagination)'
+    ),
+    BotCommand(
         command='new_ad',
         description='add new ad to store'
     ),

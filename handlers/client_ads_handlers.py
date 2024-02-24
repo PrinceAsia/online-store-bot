@@ -3,22 +3,16 @@ from time import time
 from aiogram import Router, F
 from aiogram.enums import ParseMode
 from aiogram.fsm.context import FSMContext
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import Message, CallbackQuery, InputMediaPhoto
 from aiogram.filters import CommandStart, Command
 
 from config import DB_NAME, admins
-from keyboards.client_inline_keyboards import get_category_list, get_product_list
+from keyboards.client_inline_keyboards import get_category_list, get_product_list, left_right_k
 from states.client_states import ClientAdsStates
 from utils.database import Database
-from utils.my_commands import commands_user
 
 ads_router = Router()
 db = Database(DB_NAME)
-
-#
-# @ads_router.message(F.photo)
-# async def test(message: Message, album: list(Message)):
-#     print(album)
 
 
 @ads_router.message(Command('new_ad'))
@@ -111,11 +105,64 @@ async def ad_phone_handler(message: Message, state: FSMContext):
 
 
 @ads_router.message(Command('ads'))
-async def ads_list_handler(message: Message):
-    my_ads = db.get_my_ads(message.from_user.id)
-    for ad in my_ads:
+async def all_ads_handler(message: Message, state: FSMContext):
+    all_ads = db.get_my_ads(message.from_user.id)
+    if all_ads is None:
+        await message.answer("You've no any ads")
+    elif len(all_ads) == 1:
         await message.answer_photo(
-            photo=ad[4],
-            caption=f"<b>{ad[1]}</b>\n\n{ad[2]}\n\nPrice: ${ad[3]}",
+            photo=all_ads[0][4],
+            caption=f"<b>{all_ads[0][1]}</b>\n\n{all_ads[0][2]}\n\nPrice: ${all_ads[0][3]}",
             parse_mode=ParseMode.HTML
         )
+    else:
+        await state.set_state(ClientAdsStates.showAllAds)
+        await state.update_data(all_ads=all_ads)
+        await state.update_data(index=0)
+        await message.answer_photo(
+            photo=all_ads[0][4],
+            caption=f"<b>{all_ads[0][1]}</b>\n\n{all_ads[0][2]}\n\nPrice: ${all_ads[0][3]}\n\n Ad 1 from {len(all_ads)}.",
+            parse_mode=ParseMode.HTML,
+            reply_markup=left_right_k
+        )
+
+
+@ads_router.callback_query(ClientAdsStates.showAllAds)
+async def show_all_ads_handler(callback: CallbackQuery, state: FSMContext):
+    all_data = await state.get_data()
+    index = all_data.get('index', None)
+    all_ads = all_data.get('all_ads', None)
+
+    if callback.data == 'right':
+        if index == len(all_ads)-1:
+            index = 0
+        else:
+            index = index + 1
+        await state.update_data(index=index)
+
+        await callback.message.edit_media(
+            media=InputMediaPhoto(
+                media=all_ads[index][4],
+                caption=f"<b>{all_ads[index][1]}</b>\n\n{all_ads[index][2]}\n\nPrice: ${all_ads[index][3]}\n\n Ad {index+1} from {len(all_ads)}.",
+                parse_mode=ParseMode.HTML
+            ),
+            reply_markup=left_right_k
+        )
+    else:
+        if index == 0:
+            index = len(all_ads) - 1
+        else:
+            index = index - 1
+
+        await state.update_data(index=index)
+
+        await callback.message.edit_media(
+            media=InputMediaPhoto(
+                media=all_ads[index][4],
+                caption=f"<b>{all_ads[index][1]}</b>\n\n{all_ads[index][2]}\n\nPrice: ${all_ads[index][3]}\n\n Ad {index+1} from {len(all_ads)}.",
+                parse_mode=ParseMode.HTML
+            ),
+            reply_markup=left_right_k
+        )
+
+

@@ -115,4 +115,4 @@ class Database:
             f"SELECT id, ad_title, ad_text, ad_price, ad_images FROM ads WHERE ad_owner=?;",
             (u_id,)
         )
-        return ads
+        return ads.fetchall()
